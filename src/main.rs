@@ -1,12 +1,4 @@
-// use std::{
-//     ops::{Add, Mul},
-//     sync::Arc,
-// };
-
-use std::{
-    ops::{Add, Mul},
-    sync::Arc,
-};
+use std::sync::Arc;
 
 use anyhow::*;
 use fhe::bfv::{self, BfvParameters, Ciphertext, Encoding, Plaintext, PublicKey, SecretKey};
@@ -52,14 +44,11 @@ impl Keypair for FheKeypair {
     }
 }
 
-// 1. Also need an algorhythm on the server that takes various ciphertexts as input and operates on
-//    them
-// 2.
-
-fn triple_product(a: &Ciphertext, b: &Ciphertext, c: &Ciphertext) -> Ciphertext {
-    let mut prod = a * b;
-    prod = &prod * c;
-    prod
+fn multiply_ciphertext_vec(ciphertexts: Vec<Ciphertext>) -> Result<Ciphertext> {
+    ciphertexts
+        .into_iter()
+        .reduce(|acc, ct| &acc * &ct)
+        .ok_or_else(|| Error::msg("Vector is empty"))
 }
 
 fn main() -> Result<()> {
@@ -77,8 +66,8 @@ fn main() -> Result<()> {
     let b = keypair.encrypt(inputs[1])?;
     let c = keypair.encrypt(inputs[2])?;
 
-    let prod = triple_product(&a,&b,&c);
-    
+    let prod = multiply_ciphertext_vec(vec![a, b, c])?;
+
     let tally_result = keypair.decrypt(&prod)?;
 
     let expected_result: u64 = inputs[0] * inputs[1] * inputs[2];
