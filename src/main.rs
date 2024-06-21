@@ -11,12 +11,9 @@ use fhe_traits::{FheDecoder, FheDecrypter, FheEncoder, FheEncrypter};
 use rand::thread_rng;
 
 // Define a kind of trait for a keypair that encrypts to Ct
-trait Encryptor<Ct>
-where
-    Ct: Add<Output = &Ct> + Mul<Output = &Ct>,
-{
-    fn encrypt<T>(&self, value: T) -> Result<Ct>;
-    fn decrypt<T>(&self, ciphertext: Ct) -> Result<T>;
+trait Encryptor {
+    fn encrypt(&self, value: u64) -> Result<Ciphertext>;
+    fn decrypt(&self, ciphertext: &Ciphertext) -> Result<u64>;
 }
 
 struct FheEncryptor {
@@ -25,7 +22,7 @@ struct FheEncryptor {
     params: Arc<BfvParameters>,
 }
 
-impl Encryptor<Ciphertext> for FheEncryptor {
+impl Encryptor for FheEncryptor {
     fn encrypt(&self, value: u64) -> Result<Ciphertext> {
         let mut rng = thread_rng();
         let input1: Vec<u64> = vec![value];
@@ -33,8 +30,8 @@ impl Encryptor<Ciphertext> for FheEncryptor {
         Ok(self.pk.try_encrypt(&pt1, &mut rng)?)
     }
 
-    fn decrypt(&self, ciphertext: Ciphertext) -> Result<u64> {
-        let decrypted = self.sk.try_decrypt(&ciphertext)?;
+    fn decrypt(&self, ciphertext: &Ciphertext) -> Result<u64> {
+        let decrypted = self.sk.try_decrypt(ciphertext)?;
         let decrypted_vec = Vec::<u64>::try_decode(&decrypted, Encoding::poly())?;
         Ok(decrypted_vec[0])
     }
