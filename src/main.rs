@@ -56,24 +56,29 @@ impl Keypair for FheKeypair {
 //    them
 // 2.
 
+fn triple_product(a: &Ciphertext, b: &Ciphertext, c: &Ciphertext) -> Ciphertext {
+    let mut prod = a * b;
+    prod = &prod * c;
+    prod
+}
+
 fn main() -> Result<()> {
     let params = bfv::BfvParametersBuilder::new()
         .set_degree(2048)
         .set_moduli(&[0xffffffffffc0001])
-        .set_plaintext_modulus(1 << 9)
+        .set_plaintext_modulus(1 << 8)
         .build_arc()?;
 
     let keypair = FheKeypair::generate(params);
 
-    let inputs = [2,4,10];
+    let inputs = [2, 4, 10];
 
-    let ct1 = keypair.encrypt(inputs[0])?;
-    let ct2 = keypair.encrypt(inputs[1])?;
-    let ct3 = keypair.encrypt(inputs[2])?;
+    let a = keypair.encrypt(inputs[0])?;
+    let b = keypair.encrypt(inputs[1])?;
+    let c = keypair.encrypt(inputs[2])?;
 
-    let mut prod = &ct1 * &ct2;
-    prod = &prod * &ct3;
-
+    let prod = triple_product(&a,&b,&c);
+    
     let tally_result = keypair.decrypt(&prod)?;
 
     let expected_result: u64 = inputs[0] * inputs[1] * inputs[2];
