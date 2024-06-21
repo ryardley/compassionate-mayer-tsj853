@@ -17,7 +17,7 @@
       {
         devShells.default = mkShell {
           buildInputs = [
-            rust-bin.beta.latest.default
+            rust-bin.stable."1.76.0".default
             rust-analyzer
           ];
         };
