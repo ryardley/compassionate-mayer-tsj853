@@ -18,7 +18,6 @@ struct FheKeypair {
 }
 
 impl FheKeypair {
-    // might want to pass in rng...
     pub fn generate(params: Arc<BfvParameters>) -> FheKeypair {
         let mut rng = thread_rng();
 
@@ -44,6 +43,7 @@ impl Keypair for FheKeypair {
     }
 }
 
+// TODO: use an abstract trait wrapper
 fn multiply_ciphertext_vec(ciphertexts: Vec<Ciphertext>) -> Result<Ciphertext> {
     ciphertexts
         .into_iter()
