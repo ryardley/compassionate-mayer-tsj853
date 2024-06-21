@@ -1,16 +1,18 @@
+use std::ops::{Add, Mul};
+
 use fhe::bfv::{self, Encoding, Plaintext, PublicKey, SecretKey};
 use fhe_traits::{FheDecoder, FheDecrypter, FheEncoder, FheEncrypter};
 use rand::thread_rng;
-use std::error::Error;
+use anyhow::*;
 
-// refactor: keypair trait
-//
 
-fn main() -> Result<(), Box<dyn Error>> {
-    //    let degree = 2048;
-    //   let plaintext_modulus: u64 = 4096;
-    // let moduli = vec![0xffffee001];
+// Define a kind of trait for a keypair that encrypts to Ct 
+trait Encryptor<Ct> where Ct: Add<Output = Ct> + Mul<Output = Ct> {
+    fn encrypt() -> Result<Ct>;  
+    fn decrypt(ciphertext:Ct) -> Result<u64>;
+}
 
+fn main() -> Result<()> {
     let params = bfv::BfvParametersBuilder::new()
         .set_degree(2048)
         .set_moduli(&[0xffffffffffc0001])
