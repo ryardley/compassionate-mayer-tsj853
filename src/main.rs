@@ -3,18 +3,13 @@ use fhe::bfv::{self, BfvParameters, Ciphertext, Encoding, Plaintext, PublicKey, 
 use fhe_traits::{FheDecoder, FheDecrypter, FheEncoder, FheEncrypter};
 use rand::thread_rng;
 use std::collections::VecDeque;
-use std::ops::Add;
-use std::ops::Mul;
 use std::sync::Arc;
 
 trait Encryptor<U, T> {
     fn encrypt(&self, value: U) -> Result<T>;
 }
 
-trait Decryptor<U, T>
-where
-    for<'a> &'a T: Mul<&'a T, Output = T>,
-{
+trait Decryptor<U, T> {
     fn decrypt(&self, ciphertext: &T) -> Result<U>;
 }
 
@@ -131,14 +126,8 @@ fn main() -> Result<()> {
     let encrypted = keypair.encrypt(inputs)?;
 
     // Serverside
-    let program = vec![
-        I::Arg(0),
-        I::Arg(1),
-        I::Mul,
-        I::Arg(2),
-        I::Mul,
-    ];
-    
+    let program = vec![I::Arg(0), I::Arg(1), I::Mul, I::Arg(2), I::Mul];
+
     let mul: OperationFn<Ciphertext> = Box::new(|a, b| &a * &b);
 
     let execute = parse(program, mul);
